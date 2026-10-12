@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPTu Site Report (Excel Engine)</title>
+    <!-- SheetJS for Professional Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white !important; padding: 0 !important; }
+            .shadow-md, .shadow-lg { box-shadow: none !important; }
+        }
+        input:not(:placeholder-shown), select:not(:invalid):not([value=""]), textarea:not(:placeholder-shown) {
+            background-color: #ffffff !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-2 sm:p-6 text-slate-800">
+
+    <div class="max-w-4xl mx-auto bg-white border border-slate-300 rounded-xl shadow-lg p-4 sm:p-8">
+        
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row justify-between items-center border-b-2 border-slate-800 pb-4 mb-6">
+            <div class="flex items-center space-x-3 mb-3 sm:mb-0">
+                <div class="bg-red-700 text-white font-extrabold text-2xl tracking-wider px-3 py-1 rounded">
+                    GEO GROUP
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="clearDraft()" class="no-print bg-slate-200 hover:bg-red-100 text-slate-700 hover:text-red-700 font-semibold text-xs px-3 py-1.5 rounded transition border border-slate-300">
+                    🗑️ New Report
+                </button>
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 text-center sm:text-right">DAILY CPTU REPORT</h1>
+            </div>
+        </div>
+
+        <form id="cptuForm">
+            
+            <!-- SECTION 1: Project Information -->
+            <div class="mb-6 border border-slate-300 rounded-lg p-4 bg-slate-50/30">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-2 mb-4">1. Project Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Contract Number:</label>
+                            <input type="text" id="contractNo" placeholder="e.g. 1150" oninput="saveDraft()" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Contract Name:</label>
+                            <input type="text" id="contractName" placeholder="e.g. Maseve" oninput="saveDraft()" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Date:</label>
+                            <input type="date" id="reportDate" oninput="saveDraft()" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Weather Condition:</label>
+                            <select id="weather" onchange="checkSelect(this); saveDraft()" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="" disabled selected>-- Select Weather --</option>
+                                <option value="Sunny">Sunny</option>
+                                <option value="Overcast">Overcast</option>
+                                <option value="Light Rain">Light Rain</option>
+                                <option value="Heavy Rain">Heavy Rain</option>
+                                <option value="Windy">Windy</option>
+                                <option value="Dusty">Dusty</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Rig ID:</label>
+                                <input type="text" id="rigNo" placeholder="e.g. TG63-150" oninput="saveDraft()" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Fuel Used (L):</label>
+                                <input type="number" step="0.1" id="fuelUsed" placeholder="0.0" oninput="saveDraft()" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Operator Name:</label>
+                            <input type="text" id="operator" placeholder="e.g. John Doe" oninput="saveDraft()" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Operations Log -->
+            <div class="mb-6 border border-slate-300 rounded-lg p-4 bg-slate-50/30">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-2 mb-4">2. Operations Log</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- Shift Times Card -->
+                    <div class="bg-indigo-50/50 border border-indigo-200 rounded-lg p-4 space-y-3">
+                        <h3 class="font-bold text-sm text-indigo-900 border-b border-indigo-200 pb-1">Shift Working Hours</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-1">Work Start Time:</label>
+                                <input type="time" id="workStartTime" value="07:00" oninput="saveDraft()" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-1">Work End Time:</label>
+                                <input type="time" id="workEndTime" value="17:00" oninput="saveDraft()" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Problems & Safety Log Card -->
+                    <div class="bg-amber-50/50 border border-amber-300 rounded-lg p-4 space-y-3">
+                        <h3 class="font-bold text-sm text-amber-900 border-b border-amber-200 pb-1">Problems & Safety Log</h3>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Problems Encountered:</label>
+                            <select id="problemsEncountered" onchange="togglePopupReason('problems', this.value); saveDraft()" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm">
+                                <option value="" disabled selected>-- Select --</option>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                            <div id="popup-problems" class="hidden mt-2 bg-amber-50 p-2 rounded border border-amber-200">
+                                <label class="text-[10px] font-bold text-amber-900">Describe Problems:</label>
+                                <textarea id="descProblems" placeholder="Detail any problems encountered..." oninput="autoResizeTextarea(this); saveDraft()" class="w-full bg-white border border-amber-300 rounded p-1 text-xs"></textarea>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Safety Incidents / Unsafe Acts:</label>
+                            <select id="safetyIncidents" onchange="togglePopupReason('safety', this.value); saveDraft()" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-sm">
+                                <option value="" disabled selected>-- Select --</option>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                            <div id="popup-safety" class="hidden mt-2 bg-amber-50 p-2 rounded border border-amber-200">
+                                <label class="text-[10px] font-bold text-amber-900">Describe Safety Incidents:</label>
+                                <textarea id="descSafety" placeholder="Detail any safety incidents..." oninput="autoResizeTextarea(this); saveDraft()" class="w-full bg-white border border-amber-300 rounded p-1 text-xs"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Operating Hours Card -->
+                <div class="bg-blue-50/50 border border-blue-200 rounded-lg p-4 space-y-3">
+                    <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-1">Daily Operating Hours</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Operational (hrs):</label>
+                            <input type="number" step="0.1" id="operationalTime" oninput="toggleReasonBox('operational', this.value); saveDraft()" placeholder="e.g. 8.0" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Weather (hrs):</label>
+                            <input type="number" step="0.1" id="inclementWeather" oninput="toggleReasonBox('weather', this.value); saveDraft()" placeholder="e.g. 0.0" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Standing (hrs):</label>
+                            <input type="number" step="0.1" id="standingTime" oninput="toggleReasonBox('standing', this.value); saveDraft()" placeholder="e.g. 0.0" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Breakdown (hrs):</label>
+                            <input type="number" step="0.1" id="breakdown" oninput="toggleReasonBox('breakdown', this.value); saveDraft()" placeholder="e.g. 0.0" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Downtime (hrs):</label>
+                            <input type="number" step="0.1" id="downtime" oninput="toggleReasonBox('downtime', this.value); saveDraft()" placeholder="e.g. 0.0" class="w-full bg-red-50/40 border border-slate-300 rounded px-3 py-1.5 text-sm">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Delay Reason Container -->
+                    <div id="delayReasonsContainer" class="space-y-2 pt-2 mt-2 border-t border-blue-200 hidden">
+                        <div id="reason-operational" class="hidden">
+                            <label class="block text-xs font-semibold text-blue-900 mb-1">Operations Performed Today:</label>
+                            <textarea id="descOperational" placeholder="Describe what operations were performed..." oninput="autoResizeTextarea(this); saveDraft()" class="w-full bg-white border border-blue-300 rounded p-1 text-xs"></textarea>
+                        </div>
+                        <div id="reason-weather" class="hidden">
+                            <label class="block text-xs font-semibold text-blue-900 mb-1">Weather Delay Description:</label>
+                            <textarea id="descWeather" placeholder="Describe weather impact..." oninput="autoResizeTextarea(this); saveDraft()" class="w-full bg-white border border-blue-300 rounded p-1 text-xs"></textarea>
+                        </div>
+                        <div id="reason-standing" class="hidden">
+                            <label class="block text-xs font-semibold text-blue-900 mb-1">Standing Time Description:</label>
+                            <textarea id="descStanding" placeholder="Describe standing reason..." oninput="autoResizeTextarea(this); saveDraft()" class="w-full bg-white border border-blue-300 rounded p-1 text-xs"></textarea>
+                        </div>
+                        <div id="reason-breakdown" class="hidden">
+                            <label class="block text-xs font-semibold text-blue-900 mb-1">Breakdown Description:</label>
+                            <textarea id="descBreakdown" placeholder="Describe equipment breakdown..." oninput="autoResizeTextarea(this); saveDraft()" class="w-full bg-white border border-blue-300 rounded p-1 text-xs"></textarea>
+                        </div>
+                        <div id="reason-downtime" class="hidden">
+                            <label class="block text-xs font-semibold text-blue-900 mb-1">Downtime Description:</label>
+                            <textarea id="descDowntime" placeholder="Describe downtime reason..." oninput="autoResizeTextarea(this); saveDraft()" class="w-full bg-white border border-blue-300 rounded p-1 text-xs"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: Testing Information (CPTu, MOSTAP, eVST, DMT) -->
+            <div class="mb-6 border border-slate-300 rounded-lg p-4 bg-slate-50/30">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-2 mb-4">3. Testing Information</h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <label class="flex items-center space-x-2 bg-white border border-slate-300 p-2.5 rounded cursor-pointer hover:bg-slate-50">
+                        <input type="checkbox" id="checkCptu" onchange="toggleSection('cptuSection', this.checked); saveDraft()" class="w-4 h-4 text-blue-600 rounded">
+                        <span class="text-sm font-semibold text-slate-700">CPTu Testing</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-white border border-slate-300 p-2.5 rounded cursor-pointer hover:bg-slate-50">
+                        <input type="checkbox" id="checkMostap" onchange="toggleSection('mostapSection', this.checked); saveDraft()" class="w-4 h-4 text-blue-600 rounded">
+                        <span class="text-sm font-semibold text-slate-700">MOSTAP</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-white border border-slate-300 p-2.5 rounded cursor-pointer hover:bg-slate-50">
+                        <input type="checkbox" id="checkEvst" onchange="toggleSection('evstSection', this.checked); saveDraft()" class="w-4 h-4 text-blue-600 rounded">
+                        <span class="text-sm font-semibold text-slate-700">eVST</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-white border border-slate-300 p-2.5 rounded cursor-pointer hover:bg-slate-50">
+                        <input type="checkbox" id="checkDmt" onchange="toggleSection('dmtSection', this.checked); saveDraft()" class="w-4 h-4 text-blue-600 rounded">
+                        <span class="text-sm font-semibold text-slate-700">DMT</span>
+                    </label>
+                </div>
+
+                <!-- CPTu Sub-section -->
+                <div id="cptuSection" class="hidden space-y-4 border border-blue-200 bg-blue-50/20 rounded-lg p-4 mb-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-center bg-blue-100/60 p-3 rounded border border-blue-200 gap-2">
+                        <span class="text-xs font-bold text-blue-900 uppercase">CPTu Position Configuration</span>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-xs font-bold text-blue-900 uppercase">Positions Completed Today:</label>
+                            <select id="numPositions" onchange="updatePositions(); saveDraft()" class="bg-white border border-blue-300 rounded px-3 py-1 text-sm font-semibold text-blue-700 focus:outline-none">
+                                <option value="1">1 Position</option>
+                                <option value="2">2 Positions</option>
+                                <option value="3">3 Positions</option>
+                                <option value="4">4 Positions</option>
+                                <option value="5">5 Positions</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="positionsContainer" class="space-y-6">
+                        <!-- Position Template Block (Position 1) -->
+                        <div class="position-block border border-blue-300 rounded-lg p-4 bg-white shadow-sm" data-index="1">
+                            <div class="flex flex-col sm:flex-row justify-between items-center bg-blue-600 text-white px-3 py-2 rounded-md mb-4 gap-2">
+                                <span class="text-xs font-extrabold uppercase tracking-wider">Position #1</span>
+                                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                    <label class="text-xs font-semibold uppercase">Position Name/ID:</label>
+                                    <input type="text" placeholder="e.g. CPT-01" oninput="saveDraft()" class="position-id-input bg-white text-slate-900 border border-slate-300 rounded px-2.5 py-1 text-xs font-semibold w-full sm:w-48">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Probe Type:</label>
+                                    <input type="text" value="Pagani Geotechnical" oninput="saveDraft()" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Filter Type:</label>
+                                    <select onchange="checkSelect(this); saveDraft()" class="filter-select w-full bg-red-50/40 border border-slate-300 rounded px-2.5 py-1 text-sm">
+                                        <option value="" disabled selected>-- Select Filter Type --</option>
+                                        <option value="Slot Filter">Slot Filter</option>
+                                        <option value="HDPE Porous Filter">HDPE Porous Filter</option>
+                                        <option value="Brass Porous Filter">Brass Porous Filter</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Probe Number:</label>
+                                    <input type="text" placeholder="e.g. SN-1234" oninput="saveDraft()" class="w-full bg-red-50/40 border border-slate-300 rounded px-2.5 py-1 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Saturation Fluid:</label>
+                                    <select onchange="checkSelect(this); saveDraft()" class="sat-select w-full bg-red-50/40 border border-slate-300 rounded px-2.5 py-1 text-sm">
+                                        <option value="" disabled selected>-- Select Medium --</option>
+                                        <option value="Silicone Grease">Silicone Grease</option>
+                                        <option value="Silicone Oil">Silicone Oil</option>
+                                        <option value="Glycerine">Glycerine</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-4 pt-2 border-t border-slate-200 flex items-center justify-between bg-slate-50 px-3 py-2 rounded border border-slate-300">
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-700">Were Seismics Done?</label>
+                                <select onchange="checkSelect(this); saveDraft()" class="seismics-select bg-red-50/40 border border-slate-300 rounded px-3 py-1 text-sm font-semibold">
+                                    <option value="" disabled selected>-- Select --</option>
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 my-2 pt-2 border-t border-slate-200">Zero Readings</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                                <div>
+                                    <label class="block text-xs text-slate-500 mb-1">Tip Resistance (qc):</label>
+                                    <input type="text" oninput="saveDraft()" class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-500 mb-1">Pore Pressure (u2):</label>
+                                    <input type="text" oninput="saveDraft()" class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-500 mb-1">Sleeve Friction (fs):</label>
+                                    <input type="text" oninput="saveDraft()" class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-500 mb-1">Tilt Angle (°):</label>
+                                    <input type="text" oninput="saveDraft()" class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-sm">
+                                </div>
+                            </div>
+
+                            <div class="mb-4 pt-2 border-t border-slate-200">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Dissipation Tests</h3>
+                                    <button type="button" onclick="addDissipationRow(this)" class="no-print bg-slate-800 text-white text-xs px-2 py-0.5 rounded hover:bg-slate-700">
+                                        + Add Dissipation Test
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse dissipation-table">
+                                        <thead>
+                                            <tr class="bg-slate-100 text-xs font-semibold text-slate-600 border-b border-slate-300">
+                                                <th class="p-1.5">Depth (m)</th>
+                                                <th class="p-1.5">Duration (min)</th>
+                                                <th class="p-1.5">T100 Reached?</th>
+                                                <th class="p-1.5">End (kPa)</th>
+                                                <th class="p-1.5 no-print w-8"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="dissipation-body">
+                                            <tr class="border-b border-slate-200">
+                                                <td class="p-1"><input type="number" step="0.01" oninput="saveDraft()" class="diss-depth w-full border border-slate-300 rounded px-2 py-1 text-sm"></td>
+                                                <td class="p-1"><input type="number" step="0.1" oninput="saveDraft()" class="diss-min w-full border border-slate-300 rounded px-2 py-1 text-sm"></td>
+                                                <td class="p-1">
+                                                    <select onchange="checkSelect(this); saveDraft()" class="diss-t100 w-full bg-red-50/40 border border-slate-300 rounded px-2 py-1 text-sm">
+                                                        <option value="" disabled selected>-- Select --</option>
+                                                        <option value="Yes">Yes</option>
+                                                        <option value="No">No</option>
+                                                    </select>
+                                                </td>
+                                                <td class="p-1"><input type="number" step="0.1" oninput="saveDraft()" class="diss-end w-full border border-slate-300 rounded px-2 py-1 text-sm"></td>
+                                                <td class="p-1 no-print text-center">
+                                                    <button type="button" onclick="removeDissipationRow(this); saveDraft()" class="text-red-500 hover:text-red-700 font-bold text-sm">✕</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                                <div class="space-y-2">
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Termination Parameters</h3>
+                                    <div>
+                                        <label class="block text-xs text-slate-500 mb-1">Termination Depth (m):</label>
+                                        <input type="number" step="0.01" oninput="saveDraft()" class="term-depth w-full border border-slate-300 rounded px-2 py-1 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-slate-500 mb-1">Reason for Termination:</label>
+                                        <select onchange="checkSelect(this); saveDraft()" class="term-reason w-full bg-red-50/40 border border-slate-300 rounded px-2 py-1 text-sm">
+                                            <option value="" disabled selected>-- Select Reason --</option>
+                                            <option value="Target Depth Reached">Target Depth Reached</option>
+                                            <option value="Rig Limitations">Rig Limitations</option>
+                                            <option value="qc>50MPa">qc > 50MPa</option>
+                                            <option value="fs>1600kPa">fs > 1600kPa</option>
+                                            <option value="u2>2500kPa">u2 > 2500kPa</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Position Comments</h3>
+                                    <textarea rows="3" oninput="autoResizeTextarea(this); saveDraft()" class="pos-comments w-full border border-slate-300 rounded p-2 text-sm focus:outline-none" placeholder="Notes for this specific position..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MOSTAP Sub-section -->
+                <div id="mostapSection" class="hidden border border-blue-200 bg-blue-50/20 rounded-lg p-4 mb-4 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-center border-b border-blue-200 pb-2 gap-2">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-blue-900">MOSTAP Test Parameters</h3>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-xs font-bold text-blue-900 uppercase">Number of Samples Taken:</label>
+                            <select id="numMostapSamples" onchange="updateMostapSamples(); saveDraft()" class="bg-white border border-blue-300 rounded px-2.5 py-1 text-xs font-semibold text-blue-700 focus:outline-none">
+                                <option value="1">1 Sample</option>
+                                <option value="2">2 Samples</option>
+                                <option value="3">3 Samples</option>
+                                <option value="4">4 Samples</option>
+                                <option value="5">5 Samples</option>
+                                <option value="6">6 Samples</option>
+                                <option value="7">7 Samples</option>
+                                <option value="8">8 Samples</option>
+                                <option value="9">9 Samples</option>
+                                <option value="10">10 Samples</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="mostapSamplesContainer" class="space-y-3">
+                        <div class="mostap-row bg-white border border-slate-300 rounded-lg p-3 space-y-2 shadow-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-8 gap-2 items-center">
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Position ID:</label>
+                                    <input type="text" placeholder="e.g. CPT-01" oninput="saveDraft()" class="mostap-pos w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Sequence:</label>
+                                    <select onchange="checkSelect(this); saveDraft()" class="mostap-seq w-full bg-red-50/40 border border-slate-300 rounded px-2 py-1 text-xs">
+                                        <option value="" disabled selected>-- Select --</option>
+                                        <option value="1st">1st</option>
+                                        <option value="2nd">2nd</option>
+                                        <option value="3rd">3rd</option>
+                                        <option value="4th">4th</option>
+                                        <option value="5th">5th</option>
+                                        <option value="6th">6th</option>
+                                        <option value="7th">7th</option>
+                                        <option value="8th">8th</option>
+                                        <option value="9th">9th</option>
+                                        <option value="10th">10th</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Size:</label>
+                                    <select onchange="checkSelect(this); saveDraft()" class="mostap-size w-full bg-red-50/40 border border-slate-300 rounded px-2 py-1 text-xs">
+                                        <option value="" disabled selected>-- Size --</option>
+                                        <option value="35mm">35mm</option>
+                                        <option value="65mm">65mm</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Start Depth:</label>
+                                    <input type="number" step="0.01" placeholder="m" oninput="saveDraft()" class="mostap-start w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">End Depth:</label>
+                                    <input type="number" step="0.01" placeholder="m" oninput="saveDraft()" class="mostap-end w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Wt Before:</label>
+                                    <input type="number" step="0.1" placeholder="kg" oninput="saveDraft()" class="mostap-wt-before w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Wt After:</label>
+                                    <input type="number" step="0.1" placeholder="kg" oninput="saveDraft()" class="mostap-wt-after w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Rec. Length:</label>
+                                    <input type="number" step="0.01" placeholder="m" oninput="saveDraft()" class="mostap-rec w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                            </div>
+                            <div>
+                                <input type="text" placeholder="Sample comments or observations..." oninput="saveDraft()" class="mostap-comment w-full border border-slate-300 rounded px-2 py-1 text-xs bg-slate-50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- eVST Sub-section -->
+                <div id="evstSection" class="hidden border border-blue-200 bg-blue-50/20 rounded-lg p-4 mb-4 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-center border-b border-blue-200 pb-2 gap-2">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-blue-900">eVST Test Parameters</h3>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-xs font-bold text-blue-900 uppercase">Number of eVST Tests:</label>
+                            <select id="numEvstTests" onchange="updateEvstTests(); saveDraft()" class="bg-white border border-blue-300 rounded px-2.5 py-1 text-xs font-semibold text-blue-700 focus:outline-none">
+                                <option value="1">1 Test</option>
+                                <option value="2">2 Tests</option>
+                                <option value="3">3 Tests</option>
+                                <option value="4">4 Tests</option>
+                                <option value="5">5 Tests</option>
+                                <option value="6">6 Tests</option>
+                                <option value="7">7 Tests</option>
+                                <option value="8">8 Tests</option>
+                                <option value="9">9 Tests</option>
+                                <option value="10">10 Tests</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="evstTestsContainer" class="space-y-3">
+                        <div class="evst-row bg-white border border-slate-300 rounded-lg p-3 space-y-2 shadow-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Position Name:</label>
+                                    <input type="text" placeholder="e.g. CPT-01" oninput="saveDraft()" class="evst-pos w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Sequence:</label>
+                                    <select onchange="checkSelect(this); saveDraft()" class="evst-seq w-full bg-red-50/40 border border-slate-300 rounded px-2 py-1 text-xs">
+                                        <option value="" disabled selected>-- Select --</option>
+                                        <option value="1st">1st</option>
+                                        <option value="2nd">2nd</option>
+                                        <option value="3rd">3rd</option>
+                                        <option value="4th">4th</option>
+                                        <option value="5th">5th</option>
+                                        <option value="6th">6th</option>
+                                        <option value="7th">7th</option>
+                                        <option value="8th">8th</option>
+                                        <option value="9th">9th</option>
+                                        <option value="10th">10th</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Depth (m):</label>
+                                    <input type="number" step="0.01" placeholder="m" oninput="saveDraft()" class="evst-depth w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Vane Size:</label>
+                                    <select onchange="checkSelect(this); saveDraft()" class="evst-size w-full bg-red-50/40 border border-slate-300 rounded px-2 py-1 text-xs">
+                                        <option value="" disabled selected>-- Size --</option>
+                                        <option value="Small">Small</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="Large">Large</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Fast Speed:</label>
+                                    <input type="text" placeholder="Fast" oninput="saveDraft()" class="evst-fast w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Slow Speed:</label>
+                                    <input type="text" placeholder="Slow" oninput="saveDraft()" class="evst-slow w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Successful:</label>
+                                    <select onchange="checkSelect(this); saveDraft()" class="evst-success w-full bg-red-50/40 border border-slate-300 rounded px-2 py-1 text-xs">
+                                        <option value="" disabled selected>-- Select --</option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <input type="text" placeholder="Test comments or remarks..." oninput="saveDraft()" class="evst-comment w-full border border-slate-300 rounded px-2 py-1 text-xs bg-slate-50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DMT Sub-section -->
+                <div id="dmtSection" class="hidden border border-blue-200 bg-blue-50/20 rounded-lg p-4 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-900 border-b border-blue-200 pb-1">DMT Test Parameters</h3>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">DMT Details / Notes:</label>
+                        <textarea rows="3" placeholder="Enter DMT depths, A-readings, B-readings, C-readings..." oninput="autoResizeTextarea(this); saveDraft()" id="dmtNotes" class="w-full bg-white border border-slate-300 rounded p-2 text-sm"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <button type="button" onclick="generateReport()" class="w-full bg-[#25d366] hover:bg-[#128c7e] text-white font-bold py-3.5 px-4 rounded-lg shadow transition text-base mb-3 flex items-center justify-center space-x-2">
+                <span>⚡ Generate Report for WhatsApp</span>
+            </button>
+        </form>
+
+        <!-- Result Box -->
+        <div id="result-box" class="mt-5 bg-emerald-50 border border-emerald-300 p-4 rounded-lg hidden">
+            <label class="text-xs font-bold text-emerald-900 uppercase mb-1 block">Report Generated Successfully:</label>
+            <textarea id="finalOutput" class="w-full h-40 font-mono text-xs bg-white p-2 border border-slate-300 rounded mb-2" readonly></textarea>
+            <button type="button" onclick="copyToClipboard()" class="w-full bg-[#075e54] hover:bg-[#0b6b61] text-white font-bold py-2.5 px-4 rounded transition text-sm mb-2">
+                📋 Tap Here to Copy Text
+            </button>
+            <button type="button" onclick="openWhatsAppDirect()" class="w-full bg-[#128c7e] hover:bg-[#075e54] text-white font-bold py-2.5 px-4 rounded transition text-sm">
+                🚀 Open WhatsApp with Message
+            </button>
+        </div>
+
+        <div class="no-print pt-4 mt-4 border-t border-slate-200 flex flex-col sm:flex-row gap-2">
+            <button type="button" onclick="downloadExcel()" class="flex-1 bg-[#107c41] hover:bg-[#0b582e] text-white font-bold py-2.5 px-4 rounded shadow transition text-sm flex items-center justify-center space-x-2">
+                <span>📊 Download Professional Excel (.xlsx)</span>
+            </button>
+            <button type="button" onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded shadow transition text-sm flex items-center justify-center space-x-2">
+                <span>🖨️ Print / Save to PDF</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const colorThemes = [
+            { border: 'border-blue-300', bg: 'bg-blue-50/20', headerBg: 'bg-blue-600' },
+            { border: 'border-emerald-300', bg: 'bg-emerald-50/20', headerBg: 'bg-emerald-600' },
+            { border: 'border-amber-300', bg: 'bg-amber-50/20', headerBg: 'bg-amber-600' },
+            { border: 'border-purple-300', bg: 'bg-purple-50/20', headerBg: 'bg-purple-600' },
+            { border: 'border-rose-300', bg: 'bg-rose-50/20', headerBg: 'bg-rose-600' }
+        ];
+
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight + 4) + 'px';
+        }
+
+        function checkSelect(selectElement) {
+            if (selectElement.value !== "") {
+                selectElement.style.color = "#333";
+                selectElement.style.backgroundColor = "#ffffff";
+            }
+        }
+
+        function clearDraft() {
+            if (confirm("Are you sure you want to clear all entered data and start a new report?")) {
+                localStorage.removeItem('cptu_site_report_draft');
+                document.getElementById('cptuForm').reset();
+                document.getElementById('workStartTime').value = "07:00";
+                document.getElementById('workEndTime').value = "17:00";
+                document.getElementById('delayReasonsContainer').classList.add('hidden');
+                ['operational', 'weather', 'standing', 'breakdown', 'downtime'].forEach(t => {
+                    document.getElementById(`reason-${t}`).classList.add('hidden');
+                });
+                document.getElementById('popup-problems').classList.add('hidden');
+                document.getElementById('popup-safety').classList.add('hidden');
+                document.getElementById('cptuSection').classList.add('hidden');
+                document.getElementById('mostapSection').classList.add('hidden');
+                document.getElementById('evstSection').classList.add('hidden');
+                document.getElementById('dmtSection').classList.add('hidden');
+                document.getElementById('numPositions').value = "1";
+                document.getElementById('numMostapSamples').value = "1";
+                document.getElementById('numEvstTests').value = "1";
+                document.getElementById('result-box').style.display = 'none';
+                updatePositions();
+                updateMostapSamples();
+                updateEvstTests();
+            }
+        }
+
+        function toggleSection(sectionId, isChecked) {
+            const section = document.getElementById(sectionId);
+            if (isChecked) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+        function toggleReasonBox(type, val) {
+            const box = document.getElementById(`reason-${type}`);
+            const container = document.getElementById('delayReasonsContainer');
+            
+            if (val && parseFloat(val) > 0) {
+                box.classList.remove('hidden');
+                container.classList.remove('hidden');
+                const ta = box.querySelector('textarea');
+                if (ta) autoResizeTextarea(ta);
+            } else {
+                box.classList.add('hidden');
+                const anyVisible = ['operational', 'weather', 'standing', 'breakdown', 'downtime'].some(t => !document.getElementById(`reason-${t}`).classList.contains('hidden'));
+                if (!anyVisible) {
+                    container.classList.add('hidden');
+                }
+            }
+        }
+
+        function togglePopupReason(type, val) {
+            const popup = document.getElementById(`popup-${type}`);
+            if (val === 'Yes') {
+                popup.classList.remove('hidden');
+                const ta = popup.querySelector('textarea');
+                if (ta) autoResizeTextarea(ta);
+            } else {
+                popup.classList.add('hidden');
+            }
+        }
+
+        function updateMostapSamples() {
+            const count = parseInt(document.getElementById('numMostapSamples').value) || 1;
+            const container = document.getElementById('mostapSamplesContainer');
+            const templateRow = container.firstElementChild.outerHTML;
+            
+            let html = '';
+            for (let i = 1; i <= count; i++) {
+                html += templateRow;
+            }
+            container.innerHTML = html;
+        }
+
+        function updateEvstTests() {
+            const count = parseInt(document.getElementById('numEvstTests').value) || 1;
+            const container = document.getElementById('evstTestsContainer');
+            const templateRow = container.firstElementChild.outerHTML;
+            
+            let html = '';
+            for (let i = 1; i <= count; i++) {
+                html += templateRow;
+            }
+            container.innerHTML = html;
+        }
+
+        function addDissipationRow(button) {
+            const block = button.closest('.position-block');
+            const tbody = block.querySelector('.dissipation-body');
+            const row = document.createElement('tr');
+            row.className = 'border-b border-slate-200';
+            row.innerHTML = `
+                <td class="p-1"><input type="number" step="0.01" oninput="saveDraft()" class="diss-depth w-full border border-slate-300 rounded px-2 py-1 text-sm"></td>
+                <td class="p-1"><input type="number" step="0.1" oninput="saveDraft()" class="diss-min w-full border border-slate-300 rounded px-2 py-1 text-sm"></td>
+                <td class="p-1">
+                    <select onchange="checkSelect(this); saveDraft()" class="diss-t100 w-full bg-red-50/40 border border-slate-300 rounded px-2 py-1 text-sm">
+                        <option value="" disabled selected>-- Select --</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </td>
+                <td class="p-1"><input type="number" step="0.1" oninput="saveDraft()" class="diss-end w-full border border-slate-300 rounded px-2 py-1 text-sm"></td>
+                <td class="p-1 no-print text-center">
+                    <button type="button" onclick="removeDissipationRow(this); saveDraft()" class="text-red-500 hover:text-red-700 font-bold text-sm">✕</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function removeDissipationRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+        }
+
+        function updatePositions() {
+            const count = parseInt(document.getElementById('numPositions').value) || 1;
+            const container = document.getElementById('positionsContainer');
+            const templateBlock = container.firstElementChild.outerHTML;
+            
+            let html = '';
+            for (let i = 1; i <= count; i++) {
+                const theme = colorThemes[(i - 1) % colorThemes.length];
+                let blockHtml = templateBlock;
+                
+                blockHtml = blockHtml.replace(/Position #\d+/, `Position #${i}`);
+                blockHtml = blockHtml.replace(/data-index="\d+"/, `data-index="${i}"`);
+                
+                colorThemes.forEach(th => {
+                    blockHtml = blockHtml.replace(th.border, theme.border);
+                    blockHtml = blockHtml.replace(th.bg, theme.bg);
+                    blockHtml = blockHtml.replace(th.headerBg, theme.headerBg);
+                });
+
+                html += blockHtml;
+            }
+            container.innerHTML = html;
+        }
+
+        function saveDraft() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            const formData = {};
+            inputs.forEach(input => {
+                if (input.id && input.id !== 'finalOutput') {
+                    formData[input.id] = input.value;
+                }
+            });
+            localStorage.setItem('cptu_site_report_draft', JSON.stringify(formData));
+        }
+
+        function generateReport() {
+            const contractNo = document.getElementById('contractNo').value.trim() || "-";
+            const contractName = document.getElementById('contractName').value.trim() || "-";
+            const date = document.getElementById('reportDate').value || "-";
+            const weather = document.getElementById('weather').value || "-";
+            const rigNo = document.getElementById('rigNo').value.trim() || "-";
+            const fuelUsed = document.getElementById('fuelUsed').value.trim() || "0";
+            const operator = document.getElementById('operator').value.trim() || "-";
+            
+            const startTime = document.getElementById('workStartTime').value || "07:00";
+            const endTime = document.getElementById('workEndTime').value || "17:00";
+            const opTime = document.getElementById('operationalTime').value.trim() || "0";
+            const opDone = document.getElementById('descOperational').value.trim();
+            const weatherTime = document.getElementById('inclementWeather').value.trim() || "0";
+            const weatherReason = document.getElementById('descWeather').value.trim();
+            const standingTime = document.getElementById('standingTime').value.trim() || "0";
+            const standingReason = document.getElementById('descStanding').value.trim();
+            const breakdownTime = document.getElementById('breakdown').value.trim() || "0";
+            const breakdownReason = document.getElementById('descBreakdown').value.trim();
+            const downtime = document.getElementById('downtime').value.trim() || "0";
+            const downtimeReason = document.getElementById('descDowntime').value.trim();
+            
+            const probEnc = document.getElementById('problemsEncountered').value || "No";
+            const probText = document.getElementById('descProblems').value.trim();
+            const safetyInc = document.getElementById('safetyIncidents').value || "No";
+            const safetyText = document.getElementById('descSafety').value.trim();
+
+            let text = `📋 *${contractNo} - ${contractName} CPTu DPR*
+📅 *Date:* ${date} | 🌤️ *Weather:* ${weather}
+🔧 *Rig ID:* ${rigNo} | ⛽ *Fuel Used:* ${fuelUsed}L | 👷 *Operator:* ${operator}
+
+⏰ *Shift Hours:* ${startTime} ➔ ${endTime}
+⏱️ *Daily Operating Hours:*
+• Operational Time: ${opTime}h${opDone ? ` (${opDone})` : ""}
+• Inclement Weather: ${weatherTime}h${weatherReason ? ` (${weatherReason})` : ""}
+• Standing Time: ${standingTime}h${standingReason ? ` (${standingReason})` : ""}
+• Breakdown: ${breakdownTime}h${breakdownReason ? ` (${breakdownReason})` : ""}
+• Downtime: ${downtime}h${downtimeReason ? ` (${downtimeReason})` : ""}`;
+
+            if (probEnc === 'Yes' && probText) {
+                text += `\n\n----------------------------------\n\n⚠️ *PROBLEMS ENCOUNTERED*\n${probText}`;
+            }
+
+            if (safetyInc === 'Yes' && safetyText) {
+                text += `\n\n----------------------------------\n\n🚨 *SAFETY INCIDENTS / UNSAFE ACTS*\n${safetyText}`;
+            }
+
+            if (document.getElementById('checkCptu').checked) {
+                text += `\n\n----------------------------------\n\n📍 *TESTING INFORMATION (CPTu)*`;
+                const blocks = document.querySelectorAll('.position-block');
+                blocks.forEach((block, idx) => {
+                    const posId = block.querySelector('.position-id-input').value.trim() || `Position #${idx+1}`;
+                    const seismics = block.querySelector('.seismics-select').value || "-";
+                    const probeNo = block.querySelectorAll('input')[2].value.trim() || "-";
+                    const filterType = block.querySelector('.filter-select').value || "-";
+                    const satFluid = block.querySelector('.sat-select').value || "-";
+                    const termDepth = block.querySelector('.term-depth').value || "-";
+                    const termReason = block.querySelector('.term-reason').value || "-";
+                    const posComment = block.querySelector('.pos-comments').value.trim();
+
+                    text += `\n  • *Pos:* ${posId} | *Seismics:* ${seismics} | *Probe:* ${probeNo} | *Filter:* ${filterType} | *Sat:* ${satFluid} | *Term Depth:* ${termDepth}m | *Reason:* ${termReason}`;
+                    
+                    const dissRows = block.querySelectorAll('.dissipation-body tr');
+                    let dissList = [];
+                    dissRows.forEach(dRow => {
+                        const dDepth = dRow.querySelector('.diss-depth').value;
+                        const dMin = dRow.querySelector('.diss-min').value;
+                        const dT100 = dRow.querySelector('.diss-t100').value;
+                        const dEnd = dRow.querySelector('.diss-end').value;
+                        if (dDepth || dMin || dT100 || dEnd) {
+                            dissList.push(`Depth: ${dDepth || '-'}m, Dur: ${dMin || '-'}min, T100: ${dT100 || '-'}, End: ${dEnd || '-'}kPa`);
+                        }
+                    });
+                    if (dissList.length > 0) {
+                        text += `\n    └ *Dissipation Tests:* ${dissList.join(' | ')}`;
+                    }
+
+                    if (posComment) text += `\n    └ *Comment:* ${posComment}`;
+                });
+            }
+
+            if (document.getElementById('checkMostap').checked) {
+                text += `\n\n----------------------------------\n\n🧪 *ADDITIONAL TESTS (MOSTAP)*`;
+                const rows = document.querySelectorAll('.mostap-row');
+                rows.forEach((row) => {
+                    const mPos = row.querySelector('.mostap-pos').value.trim() || "Unspecified Position";
+                    const mSeq = row.querySelector('.mostap-seq').value || "-";
+                    const mSize = row.querySelector('.mostap-size').value || "-";
+                    const mStart = row.querySelector('.mostap-start').value || "0";
+                    const mEnd = row.querySelector('.mostap-end').value || "0";
+                    const mWtBefore = row.querySelector('.mostap-wt-before').value || "0";
+                    const mWtAfter = row.querySelector('.mostap-wt-after').value || "0";
+                    const mRec = row.querySelector('.mostap-rec').value || "0";
+                    const mComment = row.querySelector('.mostap-comment').value.trim();
+
+                    text += `\n  • *Pos:* ${mPos} | *Seq:* [${mSeq}] | *Size:* ${mSize} | *Depth:* ${mStart}m - ${mEnd}m | *Rec:* ${mRec}m | *Wt Before:* ${mWtBefore}kg, *After:* ${mWtAfter}kg`;
+                    if (mComment) text += `\n    └ *Comment:* ${mComment}`;
+                });
+            }
+
+            if (document.getElementById('checkEvst').checked) {
+                text += `\n\n----------------------------------\n\n🌀 *eVST TEST PARAMETERS*`;
+                const rows = document.querySelectorAll('.evst-row');
+                rows.forEach((row) => {
+                    const ePos = row.querySelector('.evst-pos').value.trim() || "Unspecified Position";
+                    const eSeq = row.querySelector('.evst-seq').value || "-";
+                    const eDepth = row.querySelector('.evst-depth').value || "0";
+                    const eSize = row.querySelector('.evst-size').value || "-";
+                    const eFast = row.querySelector('.evst-fast').value || "-";
+                    const eSlow = row.querySelector('.evst-slow').value || "-";
+                    const eSuccess = row.querySelector('.evst-success').value || "-";
+                    const eComment = row.querySelector('.evst-comment').value.trim();
+
+                    text += `\n  • *Pos:* ${ePos} | *Seq:* [${eSeq}] | *Depth:* ${eDepth}m | *Vane:* ${eSize} | *Fast:* ${eFast} | *Slow:* ${eSlow} | *Successful:* ${eSuccess}`;
+                    if (eComment) text += `\n    └ *Comment:* ${eComment}`;
+                });
+            }
+
+            if (document.getElementById('checkDmt').checked) {
+                const dmtNotes = document.getElementById('dmtNotes').value.trim() || "No notes provided";
+                text += `\n\n----------------------------------\n\n📊 *DMT TEST PARAMETERS*\n${dmtNotes}`;
+            }
+
+            document.getElementById('finalOutput').value = text.trim();
+            const resultBox = document.getElementById('result-box');
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyToClipboard() {
+            const textBlock = document.getElementById('finalOutput');
+            textBlock.select();
+            textBlock.setSelectionRange(0, 99999);
+            try {
+                navigator.clipboard.writeText(textBlock.value).then(() => {
+                    alert('Copied! Now open WhatsApp and paste into your chat.');
+                });
+            } catch (e) {
+                document.execCommand('copy');
+                alert('Copied! Now open WhatsApp and paste into your chat.');
+            }
+        }
+
+        function openWhatsAppDirect() {
+            const textBlock = document.getElementById('finalOutput').value;
+            if (!textBlock) return;
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textBlock)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        function autofitColumns(ws) {
+            const range = XLSX.utils.decode_range(ws['!ref'] || "A1:A1");
+            const cols = [];
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                let maxLen = 10;
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    const cell = ws[XLSX.utils.encode_cell({r: R, c: C})];
+                    if (cell && cell.v != null) {
+                        const len = String(cell.v).length;
+                        if (len > maxLen) maxLen = len;
+                    }
+                }
+                cols.push({ wch: maxLen + 4 });
+            }
+            ws['!cols'] = cols;
+        }
+
+        function downloadExcel() {
+            const projCode = document.getElementById('contractNo').value.trim() || 'Project';
+            const projName = document.getElementById('contractName').value.trim() || 'Report';
+            const dateStr = document.getElementById('reportDate').value || 'Report';
+            const wb = XLSX.utils.book_new();
+
+            let totalMeters = 0;
+            const blocks = document.querySelectorAll('.position-block');
+            blocks.forEach((block) => {
+                const depth = parseFloat(block.querySelector('.term-depth').value) || 0;
+                totalMeters += depth;
+            });
+
+            const dashboardData = [
+                [`${projCode} - ${projName} CPTu EXECUTIVE DASHBOARD`, ""],
+                ["Contract Number", projCode],
+                ["Contract Name", projName],
+                ["Report Date", document.getElementById('reportDate').value || "-"],
+                ["Weather Condition", document.getElementById('weather').value || "-"],
+                ["Rig ID", document.getElementById('rigNo').value || "-"],
+                ["Operator Name", document.getElementById('operator').value || "-"],
+                [],
+                ["--- KEY PERFORMANCE INDICATORS (KPIs) ---", ""],
+                ["Total Depth Advanced (m)", totalMeters.toFixed(1)],
+                ["Daily Operational Hours", document.getElementById('operationalTime').value || "0"],
+                ["Fuel Used (L)", document.getElementById('fuelUsed').value || "0"],
+                ["Safety Incidents Reported", document.getElementById('safetyIncidents').value || "No"],
+                ["Problems Encountered", document.getElementById('problemsEncountered').value || "No"]
+            ];
+            const wsDash = XLSX.utils.aoa_to_sheet(dashboardData);
+            autofitColumns(wsDash);
+            XLSX.utils.book_append_sheet(wb, wsDash, "Dashboard");
+
+            let timeSafetyRows = [
+                ["Category", "Duration / Value", "Details / Reason"]
+            ];
+
+            timeSafetyRows.push(
+                ["Work Shift Hours", `${document.getElementById('workStartTime').value} - ${document.getElementById('workEndTime').value}`, "-"],
+                ["Operational Time", document.getElementById('operationalTime').value || "-", document.getElementById('descOperational').value || "-"],
+                ["Inclement Weather", document.getElementById('inclementWeather').value || "-", document.getElementById('descWeather').value || "-"],
+                ["Standing Time", document.getElementById('standingTime').value || "-", document.getElementById('descStanding').value || "-"],
+                ["Breakdown", document.getElementById('breakdown').value || "-", document.getElementById('descBreakdown').value || "-"],
+                ["Downtime", document.getElementById('downtime').value || "-", document.getElementById('descDowntime').value || "-"],
+                [],
+                ["Safety / Problems Log", "Status", "Description"],
+                ["Problems Encountered", document.getElementById('problemsEncountered').value || "No", document.getElementById('descProblems').value || "-"],
+                ["Safety Incidents", document.getElementById('safetyIncidents').value || "No", document.getElementById('descSafety').value || "-"]
+            );
+
+            const wsTime = XLSX.utils.aoa_to_sheet(timeSafetyRows);
+            autofitColumns(wsTime);
+            XLSX.utils.book_append_sheet(wb, wsTime, "Time & Safety Log");
+
+            if (document.getElementById('checkCptu').checked) {
+                let positionRows = [
+                    ["Position ID", "Seismics Done?", "Probe Type", "Filter Type", "Probe Number", "Saturation Fluid", "Tip Resistance (qc)", "Pore Pressure (u2)", "Sleeve Friction (fs)", "Tilt Angle", "Termination Depth (m)", "Termination Reason", "Position Comments"]
+                ];
+
+                let dissipationRows = [
+                    ["Position ID", "Dissipation Depth (m)", "Duration (min)", "T100 Reached?", "End Pressure (kPa)"]
+                ];
+
+                blocks.forEach((block) => {
+                    const posId = block.querySelector('.position-id-input').value || "-";
+                    const seismics = block.querySelector('.seismics-select').value || "-";
+                    const probeType = block.querySelectorAll('input')[0].value || "-";
+                    const filterType = block.querySelector('.filter-select').value || "-";
+                    const probeNo = block.querySelectorAll('input')[2].value || "-";
+                    const satFluid = block.querySelector('.sat-select').value || "-";
+                    const qc = block.querySelectorAll('input')[3].value || "-";
+                    const u2 = block.querySelectorAll('input')[4].value || "-";
+                    const fs = block.querySelectorAll('input')[5].value || "-";
+                    const tilt = block.querySelectorAll('input')[6].value || "-";
+                    const termDepth = block.querySelector('.term-depth').value || "-";
+                    const termReason = block.querySelector('.term-reason').value || "-";
+                    const comment = block.querySelector('.pos-comments').value || "-";
+
+                    positionRows.push([posId, seismics, probeType, filterType, probeNo, satFluid, qc, u2, fs, tilt, termDepth, termReason, comment]);
+
+                    const dRows = block.querySelectorAll('.dissipation-body tr');
+                    dRows.forEach(dRow => {
+                        const dDepth = dRow.querySelector('.diss-depth').value || "-";
+                        const dMin = dRow.querySelector('.diss-min').value || "-";
+                        const dT100 = dRow.querySelector('.diss-t100').value || "-";
+                        const dEnd = dRow.querySelector('.diss-end').value || "-";
+                        if (dDepth !== "-" || dMin !== "-") {
+                            dissipationRows.push([posId, dDepth, dMin, dT100, dEnd]);
+                        }
+                    });
+                });
+
+                const wsPositions = XLSX.utils.aoa_to_sheet(positionRows);
+                autofitColumns(wsPositions);
+                XLSX.utils.book_append_sheet(wb, wsPositions, "Positions & CPTu");
+
+                if (dissipationRows.length > 1) {
+                    const wsDiss = XLSX.utils.aoa_to_sheet(dissipationRows);
+                    autofitColumns(wsDiss);
+                    XLSX.utils.book_append_sheet(wb, wsDiss, "Dissipation Tests");
+                }
+            }
+
+            if (document.getElementById('checkMostap').checked) {
+                let mostapRows = [
+                    ["Position ID", "Sample Sequence", "Sample Size", "Start Depth (m)", "End Depth (m)", "Weight Before (kg)", "Weight After (kg)", "Recovery Length (m)", "Comments"]
+                ];
+                const rows = document.querySelectorAll('.mostap-row');
+                rows.forEach((row) => {
+                    const mPos = row.querySelector('.mostap-pos').value || "-";
+                    const mSeq = row.querySelector('.mostap-seq').value || "-";
+                    const mSize = row.querySelector('.mostap-size').value || "-";
+                    const mStart = row.querySelector('.mostap-start').value || "-";
+                    const mEnd = row.querySelector('.mostap-end').value || "-";
+                    const mWtBefore = row.querySelector('.mostap-wt-before').value || "-";
+                    const mWtAfter = row.querySelector('.mostap-wt-after').value || "-";
+                    const mRec = row.querySelector('.mostap-rec').value || "-";
+                    const mComment = row.querySelector('.mostap-comment').value || "-";
+
+                    mostapRows.push([mPos, mSeq, mSize, mStart, mEnd, mWtBefore, mWtAfter, mRec, mComment]);
+                });
+                const wsMostap = XLSX.utils.aoa_to_sheet(mostapRows);
+                autofitColumns(wsMostap);
+                XLSX.utils.book_append_sheet(wb, wsMostap, "MOSTAP Samples");
+            }
+
+            if (document.getElementById('checkEvst').checked) {
+                let evstRows = [
+                    ["Position Name", "Test Sequence", "Depth (m)", "Vane Size", "Fast Rotation Speed", "Slow Rotation Speed", "Test Successful", "Comments"]
+                ];
+                const rows = document.querySelectorAll('.evst-row');
+                rows.forEach((row) => {
+                    const ePos = row.querySelector('.evst-pos').value || "-";
+                    const eSeq = row.querySelector('.evst-seq').value || "-";
+                    const eDepth = row.querySelector('.evst-depth').value || "-";
+                    const eSize = row.querySelector('.evst-size').value || "-";
+                    const eFast = row.querySelector('.evst-fast').value || "-";
+                    const eSlow = row.querySelector('.evst-slow').value || "-";
+                    const eSuccess = row.querySelector('.evst-success').value || "-";
+                    const eComment = row.querySelector('.evst-comment').value || "-";
+
+                    evstRows.push([ePos, eSeq, eDepth, eSize, eFast, eSlow, eSuccess, eComment]);
+                });
+                const wsEvst = XLSX.utils.aoa_to_sheet(evstRows);
+                autofitColumns(wsEvst);
+                XLSX.utils.book_append_sheet(wb, wsEvst, "eVST Tests");
+            }
+
+            if (document.getElementById('checkDmt').checked) {
+                const dmtData = [["DMT Notes / Parameters"], [document.getElementById('dmtNotes').value || "-"]];
+                const wsDmt = XLSX.utils.aoa_to_sheet(dmtData);
+                autofitColumns(wsDmt);
+                XLSX.utils.book_append_sheet(wb, wsDmt, "DMT");
+            }
+
+            XLSX.writeFile(wb, `${projCode}-${projName}-CPTu-Report-${dateStr}.xlsx`);
+        }
+    </script>
+</body>
+</html>
